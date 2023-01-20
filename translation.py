@@ -60,7 +60,7 @@ def translate(script):
     for line in script.split("\n"):
         if line == '':
             continue
-        terms = re.split('\s+(?=(?:[^\'\"]*[\'\"][^\'\"]*[\'\"])*[^\'\"]*$)', line)
+        terms = re.split(r'\s+(?=(?:[^\'\"]*[\'\"][^\'\"]*[\'\"])*[^\'\"]*$)', line)
         if terms[0] == '':
             terms = terms[1:]
         # Удаляем комментарии
@@ -104,7 +104,7 @@ def translate(script):
         if line == '':
             continue
         line = line.strip()
-        terms = re.split('\s+(?=(?:[^\'\"]*[\'\"][^\'\"]*[\'\"])*[^\'\"]*$)', line)
+        terms = re.split(r'\s+(?=(?:[^\'\"]*[\'\"][^\'\"]*[\'\"])*[^\'\"]*$)', line)
         if terms[0] == '':
             terms = terms[1:]
         if len(terms) == 0 or len(terms) == 1 and terms[0] == '':
