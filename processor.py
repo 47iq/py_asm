@@ -6,8 +6,6 @@ import logging
 import sys
 from enum import Enum
 
-import heapdict
-
 from isa import Opcode, Register, OperandType, read_code
 
 DATA_MEM_SZ = 10000
@@ -143,7 +141,7 @@ class DataPath:
     def input(self):
         """Метод для эмуляции сигнала ввода данных с внешнего устройства"""
         try:
-            self.output_bus = ord(self.input_buffer[self.input_pointer][1])
+            self.output_bus = ord(self.input_buffer[self.input_pointer])
         except KeyError as exc:
             raise EOFError() from exc
         self.input_pointer += 1
@@ -161,7 +159,7 @@ class ControlUnit:
     def __init__(self, program, data_path, interrupt_queue):
         self.instr = None
         self.program: list = program
-        self.int_queue: heapdict.heapdict = interrupt_queue
+        self.int_queue: dict = interrupt_queue
         self.data_path: DataPath = data_path
         self._sig_branch = False
         self.interrupt_vector = [0]
@@ -185,8 +183,9 @@ class ControlUnit:
     def decode_and_execute_instruction(self):
         """Выбрать из памяти инструкцию и выполнить ее"""
         if self.int_enabled and not self.is_interrupted and len(self.int_queue) != 0 \
-                and self._tick >= self.int_queue.peekitem()[1]:
-            interrupt = self.int_queue.popitem()[0]
+                and self._tick >= min(self.int_queue.keys()):
+            interrupt = self.int_queue[min(self.int_queue.keys())]
+            del self.int_queue[min(self.int_queue.keys())]
             self.data_path.latch_registers(Register.SP, Register.PC)
             self.data_path.latch_alu()
             self.data_path.execute_alu(AluOperations.LEFT)
@@ -398,11 +397,8 @@ def launch_processor(args):
     program = read_code(code_file)
     with open(input_file, encoding="utf-8") as file:
         input_dict = json.loads(file.read())
-        interrupt_queue = heapdict.heapdict()
-        for (time, data) in input_dict.items():
-            interrupt_queue[(time, data)] = int(time)
-
-    return simulation(program, interrupt_queue, 100000, output_int)
+    interruption_dict = {int(key): value for key, value in input_dict.items()}
+    return simulation(program, interruption_dict, 100000, output_int)
 
 
 if __name__ == '__main__':

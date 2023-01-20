@@ -299,11 +299,13 @@ char ::= ' <any UTF-8 symbol> '
 2. [cat](tests/cat.asm) -- программа `cat`, повторяем ввод на выводе.
 3. [prob1](tests/prob1.asm) -- рассчитать сумму делителей 3 или 5, меньших 1000
 
-Интеграционные тесты реализованы тут: [integration_test](test/integration_test.py)
+Юнит-тесты реализованы тут: 
+[processor_test](tests/processor_test.py)
+[translator_test](tests/translator_test.py)
 
 CL:
 ```yaml
-lab3:
+lab3-example:
   stage: test
   image:
     name: python-tools
@@ -312,8 +314,7 @@ lab3:
     - python3-coverage run -m pytest --verbose
     - find . -type f -name "*.py" | xargs -t python3-coverage report
     - find . -type f -name "*.py" | xargs -t pep8 --ignore=E501
-    - find . -type f -name "*.py" | xargs -t pylint
-    - find . -type f -name "*.py" | xargs -t mypy --check-untyped-defs --explicit-package-bases --namespace-packages
+    - find . -type f -name "*.py" | xargs -t pylint --disable=R0912,R0915,R0902,W0603,W1114,C0116,C0201,C0200,R0201,R0124
 ```
 где:
 
@@ -321,69 +322,71 @@ lab3:
 - `pytest` -- утилита для запуска тестов.
 - `pep8` -- утилита для проверки форматирования кода. `E501` (длина строк) отключено.
 - `pylint` -- утилита для проверки качества кода. Некоторые правила отключены в отдельных модулях с целью упрощения кода.
-- `mypy` -- утилита для проверки корректности статической типизации.
-  - `--check-untyped-defs` -- дополнительная проверка.
-  - `--explicit-package-bases` и `--namespace-packages` -- помогает правильно искать импортированные модули.
 - Docker image `python-tools` включает в себя все перечисленные утилиты. Его конфигурация: [Dockerfile](./Dockerfile).
 
 Пример использования и журнал работы процессора на примере `cat`:
 
 ``` commandline
-$ cat examples/input.txt
-foo\n
-
-$ cat examples/cat.asm
-section .text
-start:
-        read tmp
-        print tmp
-        jmp start
-end:
-        exit
-
-section .data
-tmp:
-        word 0
-        
-$ py ./translation/translator.py examples/cat.asm code.bin
-source LoC: 11 code instr: 6
-
-$ cat code.bin
-0010101100000000000000000000000000000000000000000000000000000000
-0000000010011100000000000000000000000000000001010010111100000000
-0000000000000000111111100000000000000000000000000000000000101111
-0000000000000000000000000000000000000000000000000000000011111111
-100111000000000000000000000000000000010110100000
-
-$ py machine.py code.bin examples/foo_input.txt
-DEBUG:root:MOV [0, 0] {TICK: 0, PC: 0, ADDR: 0, OUT: 0, ACC: 0}
-DEBUG:root:JMP [5] {TICK: 6, PC: 3, ADDR: 0, OUT: 0, ACC: 0}
-DEBUG:root:MOV [254, 0] {TICK: 8, PC: 5, ADDR: 0, OUT: 0, ACC: 0}
-DEBUG:root:input: 'f'
-DEBUG:root:MOV [0, 255] {TICK: 15, PC: 8, ADDR: 0, OUT: 102, ACC: 102}
-DEBUG:root:output: '' << 'f'
-DEBUG:root:JMP [5] {TICK: 22, PC: 11, ADDR: 255, OUT: 0, ACC: 102}
-DEBUG:root:MOV [254, 0] {TICK: 24, PC: 5, ADDR: 255, OUT: 0, ACC: 102}
-DEBUG:root:input: 'o'
-DEBUG:root:MOV [0, 255] {TICK: 31, PC: 8, ADDR: 0, OUT: 111, ACC: 111}
-DEBUG:root:output: 'f' << 'o'
-DEBUG:root:JMP [5] {TICK: 38, PC: 11, ADDR: 255, OUT: 0, ACC: 111}
-DEBUG:root:MOV [254, 0] {TICK: 40, PC: 5, ADDR: 255, OUT: 0, ACC: 111}
-DEBUG:root:input: 'o'
-DEBUG:root:MOV [0, 255] {TICK: 47, PC: 8, ADDR: 0, OUT: 111, ACC: 111}
-DEBUG:root:output: 'fo' << 'o'
-DEBUG:root:JMP [5] {TICK: 54, PC: 11, ADDR: 255, OUT: 0, ACC: 111}
-DEBUG:root:MOV [254, 0] {TICK: 56, PC: 5, ADDR: 255, OUT: 0, ACC: 111}
-DEBUG:root:input: '\n'
-DEBUG:root:MOV [0, 255] {TICK: 63, PC: 8, ADDR: 0, OUT: 10, ACC: 10}
-DEBUG:root:output: 'foo' << '\n'
-DEBUG:root:JMP [5] {TICK: 70, PC: 11, ADDR: 255, OUT: 0, ACC: 10}
-DEBUG:root:MOV [254, 0] {TICK: 72, PC: 5, ADDR: 255, OUT: 0, ACC: 10}
-WARNING:root:Input buffer is empty!
-INFO:root:output_buffer: 'foo\n'
-foo
-
-instr_counter:  14 ticks: 74
+hello world
+instr_counter:  56 ticks: 100
+DEBUG:root:{INSTR: 0, TICK: 0, PC: 0, R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 0, OP1: r0, OP2: r0, OUT: r1, INT: False}
+DEBUG:root:{INSTR: 1, TICK: 1, PC: 1, R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 0, OP1: r0, OP2: r0, OUT: r1, INT: False} sti   
+DEBUG:root:{INSTR: 2, TICK: 5, PC: 3, R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 0, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 3, TICK: 6, PC: 4, R0: 0, R1: 104, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 0, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 4, TICK: 7, PC: 5, R0: 0, R1: 104, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 0, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 5, TICK: 8, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 0, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 6, TICK: 10, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 7, TICK: 14, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 8, TICK: 15, PC: 4, R0: 0, R1: 101, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 9, TICK: 16, PC: 5, R0: 0, R1: 101, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 10, TICK: 17, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 11, TICK: 19, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 12, TICK: 23, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 13, TICK: 24, PC: 4, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 14, TICK: 25, PC: 5, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 15, TICK: 26, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 16, TICK: 28, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 17, TICK: 32, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 18, TICK: 33, PC: 4, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 19, TICK: 34, PC: 5, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 20, TICK: 35, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 21, TICK: 37, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 22, TICK: 41, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 23, TICK: 42, PC: 4, R0: 0, R1: 111, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 24, TICK: 43, PC: 5, R0: 0, R1: 111, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 25, TICK: 44, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 26, TICK: 46, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 27, TICK: 50, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 28, TICK: 51, PC: 4, R0: 0, R1: 32, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 29, TICK: 52, PC: 5, R0: 0, R1: 32, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 30, TICK: 53, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 31, TICK: 55, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 32, TICK: 59, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 33, TICK: 60, PC: 4, R0: 0, R1: 119, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 34, TICK: 61, PC: 5, R0: 0, R1: 119, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 35, TICK: 62, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 36, TICK: 64, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 37, TICK: 68, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 38, TICK: 69, PC: 4, R0: 0, R1: 111, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 39, TICK: 70, PC: 5, R0: 0, R1: 111, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 40, TICK: 71, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 41, TICK: 73, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 42, TICK: 77, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 43, TICK: 78, PC: 4, R0: 0, R1: 114, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 44, TICK: 79, PC: 5, R0: 0, R1: 114, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 45, TICK: 80, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 46, TICK: 82, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 47, TICK: 86, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 48, TICK: 87, PC: 4, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 49, TICK: 88, PC: 5, R0: 0, R1: 108, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 50, TICK: 89, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 51, TICK: 91, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+DEBUG:root:{INSTR: 52, TICK: 95, PC: 3, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r1, OUT: r1, INT: True} sv  r1 sp
+DEBUG:root:{INSTR: 53, TICK: 96, PC: 4, R0: 0, R1: 100, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r0, OUT: r1, INT: True} in   r1
+DEBUG:root:{INSTR: 54, TICK: 97, PC: 5, R0: 0, R1: 100, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: r0, OP2: r1, OUT: r1, INT: True} out   r1
+DEBUG:root:{INSTR: 55, TICK: 98, PC: 6, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 9999, MEM[SP]: 2, OP1: sp, OP2: r0, OUT: r1, INT: True} ld r1  sp
+DEBUG:root:{INSTR: 56, TICK: 100, PC: 1, R0: 0, R1: 2, R2: 0, R3: 0, R4: 0, SP: 10000, MEM[SP]: 1, OP1: sp, OP2: r0, OUT: pc, INT: False} iret   
+INFO:root:output_buffer: 'hello world'
 ```
 
 | ФИО              | алг.  | LoC | code байт | code инстр. | инстр. | такт. | вариант |
