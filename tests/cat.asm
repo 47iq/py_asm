@@ -1,5 +1,5 @@
 section data
-    int 0 int_handler
+    int 0 int_handler ;dddd
 section text
     sti
     halt

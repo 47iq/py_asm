@@ -67,8 +67,7 @@ def translate(script):
         for i in range(len(terms)):
             terms[i] = str(terms[i])
             if terms[i][0] == ';':
-                terms = terms[0:i - 1]
-                break
+                terms = terms[0:i]
         if terms[0] == "section":
             if not terms[1] in str2section:
                 raise SyntaxError(f"unknown section name {terms[1]}")
@@ -114,8 +113,7 @@ def translate(script):
         for i in range(len(terms)):
             terms[i] = str(terms[i])
             if terms[i][0] == ';':
-                terms = terms[0:i - 1]
-                break
+                terms = terms[0:i]
         if terms[0] == "section":
             if not terms[1] in str2section:
                 raise SyntaxError(f"unknown section name {terms[1]}")
