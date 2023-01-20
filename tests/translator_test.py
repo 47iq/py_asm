@@ -21,10 +21,10 @@ class TranslatorTest(unittest.TestCase):
         self.assertEqual(result_code, correct_code)
 
     def test_cat(self):
-        self.simple_test("cat.asm", "cat.test", "cat")
+        self.simple_test("tests/cat.asm", "tests/cat.test", "cat")
 
     def test_prob2(self):
-        self.simple_test("prob1.asm", "prob1.test", "prob1")
+        self.simple_test("tests/prob1.asm", "tests/prob1.test", "prob1")
 
     def test_hello_world(self):
-        self.simple_test("hello.asm", "hello.test", "hello")
+        self.simple_test("tests/hello.asm", "tests/hello.test", "hello")
