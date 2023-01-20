@@ -295,9 +295,9 @@ char ::= ' <any UTF-8 symbol> '
 
 В качестве тестов использовано два алгоритма:
 
-1. [hello world](examples/hello.asm).
-2. [cat](examples/cat.asm) -- программа `cat`, повторяем ввод на выводе.
-3. [prob1](examples/prob1.asm) -- рассчитать сумму делителей 3 или 5, меньших 1000
+1. [hello world](tests/hello.asm).
+2. [cat](tests/cat.asm) -- программа `cat`, повторяем ввод на выводе.
+3. [prob1](tests/prob1.asm) -- рассчитать сумму делителей 3 или 5, меньших 1000
 
 Интеграционные тесты реализованы тут: [integration_test](test/integration_test.py)
 
