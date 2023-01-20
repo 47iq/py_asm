@@ -81,7 +81,7 @@ class RegFile:
 class DataPath:
     """Класс, эмулирующий тракт данных, предоставляющий интерфейс для CU"""
 
-    def __init__(self, data_memory):
+    def __init__(self, data_memory, output_int: bool):
         self.data_memory: list[int] = data_memory
         self.reg_file = RegFile()
         self.alu = Alu()
@@ -91,6 +91,7 @@ class DataPath:
         self.input_buffer = []
         self.input_pointer = 0
         self.output_buffer = []
+        self.output_int = output_int
 
     def latch_registers(self, operand_1, operand_2=Register.R0, output=Register.R1):
         """Метод для выбора набора регистров из регистрового файла для инструкции"""
@@ -134,7 +135,10 @@ class DataPath:
 
     def print(self):
         """Метод для эмуляции сигнала вывода данных на внешнее устройство"""
-        self.output_buffer.append(chr(self.alu_bus))
+        if self.output_int:
+            self.output_buffer.append(self.alu_bus)
+        else:
+            self.output_buffer.append(chr(self.alu_bus))
 
     def input(self):
         """Метод для эмуляции сигнала ввода данных с внешнего устройства"""
@@ -338,7 +342,7 @@ class ControlUnit:
         return f"{state}"
 
 
-def simulation(program, interrupt_queue, limit):
+def simulation(program, interrupt_queue, limit, output_int):
     """Запуск симуляции процессора.
 
     Длительность моделирования ограничена количеством выполненных инструкций.
@@ -348,7 +352,7 @@ def simulation(program, interrupt_queue, limit):
     data_memory = [0] * (DATA_MEM_SZ + 2)
     for i in range(len(data)):
         data_memory[i] = data[i]
-    data_path = DataPath(data_memory)
+    data_path = DataPath(data_memory, output_int)
     control_unit = ControlUnit(code, data_path, interrupt_queue)
     instr_counter = 0
     logging.debug('%s', control_unit)
@@ -364,27 +368,41 @@ def simulation(program, interrupt_queue, limit):
         logging.warning('Can not write to read-only register!')
     except StopIteration:
         pass
-    logging.info('output_buffer: %s', repr(''.join(data_path.output_buffer)))
-    return ''.join(data_path.output_buffer), instr_counter, control_unit.current_tick()
+    if not output_int:
+        buffer = ''.join(data_path.output_buffer)
+        logging.info('output_buffer: %s', repr(buffer))
+    else:
+        buffer = ''
+        for data in data_path.output_buffer:
+            buffer += str(data)
+        logging.info('output_buffer: %s', buffer)
+    return buffer, instr_counter, control_unit.current_tick()
 
 
 def main(args):
     """Метод для запуска программы из командной строки"""
-    assert len(args) == 2, "Wrong arguments: machine.py <code_file> <input_file>"
-    code_file, input_file = args
+    output, instr_counter, ticks = launch_processor(args)
+    print(''.join(output))
+    print("instr_counter: ", instr_counter, "ticks:", ticks)
 
+
+def launch_processor(args):
+    assert len(args) == 2 or len(args) == 3, "Wrong arguments: machine.py <code_file> <input_file> ?[int, str]"
+    code_file, input_file = (None, None)
+    if len(args) == 2:
+        code_file, input_file = args
+    output_int = False
+    if len(args) == 3:
+        code_file, input_file, output_type = args
+        output_int = (output_type == 'int')
     program = read_code(code_file)
-
     with open(input_file, encoding="utf-8") as file:
         input_dict = json.loads(file.read())
         interrupt_queue = heapdict.heapdict()
         for (time, data) in input_dict.items():
             interrupt_queue[(time, data)] = int(time)
 
-    output, instr_counter, ticks = simulation(program, interrupt_queue=interrupt_queue, limit=100000)
-
-    print(''.join(output))
-    print("instr_counter: ", instr_counter, "ticks:", ticks)
+    return simulation(program, interrupt_queue, 100000, output_int)
 
 
 if __name__ == '__main__':
