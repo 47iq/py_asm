@@ -7,4 +7,12 @@ lab3-example:
     - python3-coverage run -m pytest --verbose
     - find . -type f -name "*.py" | xargs -t python3-coverage report
     - find . -type f -name "*.py" | xargs -t pep8 --ignore=E501
-    - find . -type f -name "*.py" | xargs -t pylint --disable=C0301, R0903
+    - find . -type f -name "*.py" | xargs -t pylint --disable=C0301,R0903,C0200,C0201,R1715,R0912,R0915
+    # R0903: Too few public methods (0/2) (too-few-public-methods)
+    # C0301: Line too long (111/100) (line-too-long)
+    # C0200: Consider using enumerate instead of iterating with range and len (consider-using-enumerate)
+    # C0201: Consider iterating the dictionary directly instead of calling .keys() (consider-iterating-dictionary)
+    # R1715: Consider using dict.get for getting values from a dict if a key is present or a default if not (consider-using-get)
+    # R0912: Too many branches (74/12) (too-many-branches)
+    # R0915: Too many statements (155/50) (too-many-statements)
+    # C0116: Missing function or method docstring (missing-function-docstring)

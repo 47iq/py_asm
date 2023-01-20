@@ -386,6 +386,7 @@ def main(args):
 
 
 def launch_processor(args):
+    """Метод для эмуляции запуска программы из командной строки в тестах"""
     assert len(args) == 2 or len(args) == 3, "Wrong arguments: machine.py <code_file> <input_file> ?[int, str]"
     code_file, input_file = (None, None)
     if len(args) == 2:
