@@ -16,11 +16,11 @@ label ::= label_name ":" ?comment
 
 comment ::= ; <any sequence>
 
-declaration_line ::= label | declaration ?comment "\n"
+declaration_line ::= " "+ (label | declaration) ?comment "\n"
 
 declaration ::= ("word" number | char) | ("int" number number)
 
-instruction_line ::= label | instruction  ?comment "\n"
+instruction_line ::= " "+ (label | instruction)  ?comment "\n"
             
 instruction ::=  ((op_3_args " " wr_register " " register " " operand) |
             (op_2_args " " register " " operand) |
