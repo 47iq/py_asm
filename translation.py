@@ -78,7 +78,7 @@ def translate(script):
             raise SyntaxError(f"duplicate label: {terms[0][0:-2]}")
         if not state:
             raise SyntaxError("no active section")
-        elif state == SectionState.TEXT:
+        if state == SectionState.TEXT:
             if len(terms) == 1 and terms[0][-1] == ':':
                 labels[terms[0][0:-1]] = str(instr_count)
                 continue

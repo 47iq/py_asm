@@ -228,7 +228,7 @@ class ControlUnit:
             self.is_interrupted = False
             return
 
-        elif opcode in [Opcode.JNE, Opcode.JE, Opcode.JMP]:
+        if opcode in [Opcode.JNE, Opcode.JE, Opcode.JMP]:
             if opcode is not Opcode.JMP:
                 self.data_path.latch_registers(instr["arg1"], Register.R0)
                 self.data_path.latch_alu()

@@ -15,13 +15,13 @@ class ProcessorTest(unittest.TestCase):
         return processor.launch_processor([output, self.input, output_type])
 
     def test_cat(self):
-        output, instr_counter, ticks = self.start_machine("tests/cat")
+        output = self.start_machine("tests/cat")[0]
         self.assertEqual(output, 'hello world')
 
     def test_hello(self):
-        output, instr_counter, ticks = self.start_machine("tests/hello")
+        output = self.start_machine("tests/hello")[0]
         self.assertEqual(output, 'hello world')
 
     def test_prob1(self):
-        output, instr_counter, ticks = self.start_machine("tests/prob1", "int")
+        output = self.start_machine("tests/prob1", "int")[0]
         self.assertEqual(output, '233168')

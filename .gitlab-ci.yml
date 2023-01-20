@@ -7,4 +7,4 @@ lab3-example:
     - python3-coverage run -m pytest --verbose
     - find . -type f -name "*.py" | xargs -t python3-coverage report
     - find . -type f -name "*.py" | xargs -t pep8 --ignore=E501
-    - find . -type f -name "*.py" | xargs -t pylint --disable=R0912,R0915,R0902,W0603,W1114,C0116,C0201,C0200,R0201,R0124
+    - find . -type f -name "*.py" | xargs -t pylint --disable=C0301, R0903
