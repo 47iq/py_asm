@@ -28,3 +28,6 @@ class TranslatorTest(unittest.TestCase):
 
     def test_hello_world(self):
         self.simple_test("tests/hello.asm", "tests/hello.test", "tests/hello")
+
+    def test_hello_world(self):
+        self.simple_test("tests/var_test.asm", "tests/var_test.test", "tests/var_test")

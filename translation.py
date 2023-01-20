@@ -98,7 +98,8 @@ def translate(script):
                 data_count += 1
             elif terms[0] == "int":
                 continue
-            raise SyntaxError(f"unknown instruction {terms[0]}. only word instruction is supported")
+            else:
+                raise SyntaxError(f"unknown instruction {terms[0]}. only word instruction is supported")
     instr_count = 0
     for line in script.split("\n"):
         if line == '':

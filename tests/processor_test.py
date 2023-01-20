@@ -25,3 +25,7 @@ class ProcessorTest(unittest.TestCase):
     def test_prob1(self):
         output = self.start_machine("tests/prob1", "int")[0]
         self.assertEqual(output, '233168')
+
+    def test_args(self):
+        output = self.start_machine("tests/var_test")[0]
+        self.assertEqual(output, 'test')
